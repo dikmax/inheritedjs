@@ -112,8 +112,10 @@ window['createClass'] = function () {
         tempCtor.prototype = baseClass.prototype;
         _class.superClass_ = baseClass.prototype;
         _class.prototype = new tempCtor();
+        /** @expose */
         _class.prototype.className_ = specification.name;
         _class.prototype.constructor = _class;
+        /** @expose */
         _class.prototype.constructorFn_ = constructor;
         /** @expose */
         _class.prototype.inherited = inherited;
