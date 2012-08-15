@@ -40,21 +40,22 @@ window['createClass'] = function () {
     }
 
     return function (specification) {
-        eval('var cnstr=arguments[0].constructor||function(){}');
-        specification.constructor = specification.constructor || function () {};
+        if (specification && specification.constructor === Object || !specification.constructor) {
+            specification.constructor = function () {};
+        }
+        eval('var cnstr=arguments[0].constructor');
         var constructor = specification.constructor;
         var _class = constructor;
         /**
-         * @function
-         * @param name
-         * @param body
-         * @return {Object}
+         * @param {string=} name
+         * @param {string=} body
+         * @return {!Function}
          */
         var nameGenerator;
         if (specification.name) {
             if (browser === Browser.CHROME) {
                 // Chrome supports fullly qualified names
-                nameGenerator = function (name, body) {
+                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
                     body = body || "";
                     name = name || "TempObject";
                     var namePeriodIndex = name.indexOf('.');
@@ -77,22 +78,22 @@ window['createClass'] = function () {
                     } else {
                         eval('var ' + name + '=function(){' + body + '};var result='+name);
                     }
-                    return eval('result');
+                    return /** @type {!Function} */ eval('result');
                 };
             } else if (browser === Browser.FIREFOX) {
                 // Firefox supports short names so replace all dots with underscores
-                nameGenerator = function (name, body) {
+                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
                     body = body || "";
                     name = name ? name.replace(/\./g, '_') : '';
                     eval('function ' + name + '(){' + body + '};var result=' + name);
-                    return eval('result');
+                    return /** @type {!Function} */ eval('result');
                 };
             } else {
                 // Opera doesn't supports object names at all.
                 // I know nothing about other browsers
-                nameGenerator = function (name, body) {
+                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
                     if (body) {
-                        return eval('function(){' + body + '}');
+                        return /** @type {!Function} */ eval('function(){' + body + '}');
                     }
                     return function () {};
                 }
@@ -100,7 +101,10 @@ window['createClass'] = function () {
 
             _class = nameGenerator(specification.name, 'cnstr.apply(this,arguments)')
         } else {
-            nameGenerator = function () {
+            nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
+                if (body) {
+                    return /** @type {!Function} */ eval('function(){' + body + '}');
+                }
                 return function () {};
             }
         }

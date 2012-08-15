@@ -74,5 +74,69 @@ TestCase("InheritedTest", {
         assertSame("Wrong class name", test.className_, 'TestClass');
         assertTrue("Constructor wasn't called", test.a);
         assertSame("Inherited constructor wasn't called", test.prop, 0);
+    },
+
+    testEmptyName: function () {
+        var TestClass = createClass({
+            constructor: function () {
+                this.prop = true;
+            }
+        });
+
+        var test = new TestClass();
+        assertTrue(test.prop);
+    },
+
+    testEmptyNameInheritance: function () {
+        var TestClass1 = createClass({
+            constructor: function () {
+                this.prop = true;
+            }
+        });
+
+        var TestClass2 = createClass({
+            constructor: function () {
+                this.inherited();
+            },
+            extend: TestClass1
+        });
+
+        var test = new TestClass2();
+        assertTrue(test.prop);
+    },
+
+    testNoConstructor: function () {
+        var TestClass = createClass({
+            method: function () {
+                this.prop = true;
+            }
+        });
+
+        var test = new TestClass();
+        test.method();
+        assertTrue(test.prop);
+    },
+
+    testNoConstructorInheritance: function () {
+        var TestClass1 = createClass({
+            method: function () {
+                this.prop = true;
+            }
+        });
+
+        var TestClass2 = createClass({
+            extend: TestClass1,
+
+            method: function() {
+                this.inherited();
+            }
+        });
+
+        var test = new TestClass2();
+        test.method();
+        assertTrue(test.prop);
     }
+
 });
+
+// Over child inheritance
