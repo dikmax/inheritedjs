@@ -135,8 +135,54 @@ TestCase("InheritedTest", {
         var test = new TestClass2();
         test.method();
         assertTrue(test.prop);
+    },
+
+    testOverChildInheritance: function () {
+        var TestClass1 = createClass({
+            method: function () {
+                this.prop = true;
+            }
+        });
+
+        var TestClass2 = createClass({
+            extend: TestClass1
+        });
+
+        var TestClass3 = createClass({
+            extend: TestClass2,
+
+            method: function () {
+                this.prop = false;
+                this.inherited();
+            }
+        });
+
+        var test = new TestClass3();
+        test.method();
+        assertTrue(test.prop);
+    },
+
+    testOverConstructorInheritance: function () {
+        var TestClass1 = createClass({
+            constructor: function () {
+                this.prop = true;
+            }
+        });
+
+        var TestClass2 = createClass({
+            extend: TestClass1
+        });
+
+        var TestClass3 = createClass({
+            extend: TestClass2,
+
+            constructor: function () {
+                this.prop = false;
+                this.inherited();
+            }
+        });
+
+        var test = new TestClass3();
+        assertFalse(test.prop);
     }
-
 });
-
-// Over child inheritance

@@ -9,6 +9,7 @@ window['createClass'] = function () {
         var method;
         var caller = arguments.callee.caller;
         for (var i in proto) {
+            //noinspection JSUnfilteredForInLoop
             if (proto[i] === caller) {
                 method = i;
                 break;
@@ -109,7 +110,7 @@ window['createClass'] = function () {
             }
         }
 
-        var baseClass = specification.extend || Object; // TODO test for using object directly
+        var baseClass = specification.extend || Object;
 
         // tempCtor is used to replace constructor on base class
         var tempCtor = nameGenerator(specification.name);
@@ -119,6 +120,7 @@ window['createClass'] = function () {
         /** @expose */
         _class.prototype.className_ = specification.name;
         _class.prototype.constructor = _class;
+        //noinspection JSUnusedGlobalSymbols
         /** @expose */
         _class.prototype.constructorFn_ = constructor;
         /** @expose */
