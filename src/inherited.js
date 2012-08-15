@@ -3,7 +3,7 @@
  * @param {Object} specification
  * @return {Object}
  */
-window['createClass'] = function () {
+this['createClass'] = function () {
     var inherited = function () {
         var proto = this.__proto__;
         var method;
