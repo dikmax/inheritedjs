@@ -15,6 +15,9 @@ window['createClass'] = function () {
             }
         }
         if (method) {
+            if (proto.__proto__[method] === undefined) {
+                throw "No inherited method found";
+            }
             proto.__proto__[method].apply(this, arguments);
         }
     };
@@ -29,9 +32,10 @@ window['createClass'] = function () {
     };
     var browser = Browser.OTHER;
 
-    if (navigator.userAgent.indexOf('Chrome') !== -1) {
+    var userAgent = navigator.userAgent;
+    if (userAgent.indexOf('Chrome') !== -1) {
         browser = Browser.CHROME;
-    } else if (navigator.userAgent.indexOf('Firefox') !== -1) {
+    } else if (userAgent.indexOf('Firefox') !== -1) {
         browser = Browser.FIREFOX;
     }
 
@@ -78,14 +82,10 @@ window['createClass'] = function () {
             } else if (browser === Browser.FIREFOX) {
                 // Firefox supports short names so replace all dots with underscores
                 nameGenerator = function (name, body) {
-                    /**
-                     * @type {Function}
-                     */
-                    var result;
                     body = body || "";
                     name = name ? name.replace(/\./g, '_') : '';
                     eval('function ' + name + '(){' + body + '};var result=' + name);
-                    return result;
+                    return eval('result');
                 };
             } else {
                 // Opera doesn't supports object names at all.

@@ -1,0 +1,5 @@
+load:
+  - src/inherited.js
+
+test:
+  - test/inherited.test.js
