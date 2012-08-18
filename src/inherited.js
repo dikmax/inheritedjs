@@ -1,5 +1,14 @@
-Object.prototype.extend = function () {
-    var inherited = function () {
+/**
+ * @export
+ */
+Object.prototype['extend'] = function () {
+    /**
+     * Calls parent method
+     *
+     * @param {...*} args Arguments passed to parent method
+     * @return {*} Return value of parent method
+     */
+    var inherited = function (args) {
         var proto = this.__proto__;
         var method;
         var caller = arguments.callee.caller;
@@ -14,7 +23,7 @@ Object.prototype.extend = function () {
             if (proto.__proto__[method] === undefined) {
                 throw "No inherited method found";
             }
-            proto.__proto__[method].apply(this, arguments);
+            return proto.__proto__[method].apply(this, arguments);
         }
     };
 
@@ -26,8 +35,14 @@ Object.prototype.extend = function () {
         FIREFOX: 2,
         OTHER: 3
     };
+    /**
+     * @type {number}
+     */
     var browser = Browser.OTHER;
 
+    /**
+     * @type {string}
+     */
     var userAgent = navigator.userAgent;
     if (userAgent.indexOf('Chrome') !== -1) {
         browser = Browser.CHROME;
@@ -35,6 +50,11 @@ Object.prototype.extend = function () {
         browser = Browser.FIREFOX;
     }
 
+    /**
+     * @param {string|Object|null|undefined} name
+     * @param {Object|null|undefined} specification}
+     * @return Object
+     */
     return function (name, specification) {
         if (typeof name !== 'string') {
             specification = name;
@@ -49,15 +69,15 @@ Object.prototype.extend = function () {
         var constructor = specification.constructor;
         var _class = constructor;
         /**
-         * @param {string=} name
-         * @param {string=} body
+         * @param {?string=} name
+         * @param {?string=} body
          * @return {!Function}
          */
         var nameGenerator;
         if (name) {
             if (browser === Browser.CHROME) {
                 // Chrome supports fullly qualified names
-                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
+                nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                     body = body || "";
                     name = name || "TempObject";
                     var namePeriodIndex = name.indexOf('.');
@@ -84,7 +104,7 @@ Object.prototype.extend = function () {
                 };
             } else if (browser === Browser.FIREFOX) {
                 // Firefox supports short names so replace all dots with underscores
-                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
+                nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                     body = body || "";
                     name = name ? name.replace(/\./g, '_') : '';
                     eval('function ' + name + '(){' + body + '};var result=' + name);
@@ -93,7 +113,7 @@ Object.prototype.extend = function () {
             } else {
                 // Opera doesn't supports object names at all.
                 // I know nothing about other browsers
-                nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
+                nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                     if (body) {
                         return /** @type {!Function} */ eval('function(){' + body + '}');
                     }
@@ -103,7 +123,7 @@ Object.prototype.extend = function () {
 
             _class = nameGenerator(name, 'cnstr.apply(this,arguments)')
         } else {
-            nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
+            nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                 if (body) {
                     return /** @type {!Function} */ eval('function(){' + body + '}');
                 }
