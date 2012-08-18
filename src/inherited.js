@@ -1,9 +1,4 @@
-/**
- * @function
- * @param {Object} specification
- * @return {Object}
- */
-this['createClass'] = function () {
+Object.prototype.extend = function () {
     var inherited = function () {
         var proto = this.__proto__;
         var method;
@@ -40,11 +35,17 @@ this['createClass'] = function () {
         browser = Browser.FIREFOX;
     }
 
-    return function (specification) {
-        if (specification && specification.constructor === Object || !specification.constructor) {
+    return function (name, specification) {
+        if (typeof name !== 'string') {
+            specification = name;
+            arguments[1] = specification;
+            name = null;
+        }
+        specification = specification || {};
+        if (specification.constructor === Object || !specification.constructor) {
             specification.constructor = function () {};
         }
-        eval('var cnstr=arguments[0].constructor');
+        eval('var cnstr=arguments[1] && arguments[1].constructor || function(){}');
         var constructor = specification.constructor;
         var _class = constructor;
         /**
@@ -53,7 +54,7 @@ this['createClass'] = function () {
          * @return {!Function}
          */
         var nameGenerator;
-        if (specification.name) {
+        if (name) {
             if (browser === Browser.CHROME) {
                 // Chrome supports fullly qualified names
                 nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
@@ -100,7 +101,7 @@ this['createClass'] = function () {
                 }
             }
 
-            _class = nameGenerator(specification.name, 'cnstr.apply(this,arguments)')
+            _class = nameGenerator(name, 'cnstr.apply(this,arguments)')
         } else {
             nameGenerator = /** @type {function (string=, string=): (!Function)} */ function (name, body) {
                 if (body) {
@@ -110,15 +111,15 @@ this['createClass'] = function () {
             }
         }
 
-        var baseClass = specification.extend || Object;
+        var baseClass = this;
 
         // tempCtor is used to replace constructor on base class
-        var tempCtor = nameGenerator(specification.name);
+        var tempCtor = nameGenerator(name);
         tempCtor.prototype = baseClass.prototype;
         _class.superClass_ = baseClass.prototype;
         _class.prototype = new tempCtor();
         /** @expose */
-        _class.prototype.className_ = specification.name;
+        _class.prototype.className_ = name;
         _class.prototype.constructor = _class;
         //noinspection JSUnusedGlobalSymbols
         /** @expose */
@@ -126,9 +127,7 @@ this['createClass'] = function () {
         /** @expose */
         _class.prototype.inherited = inherited;
 
-        delete specification.name;
         delete specification.constructor;
-        delete specification.extend;
 
         for (var prop in specification) {
             if (specification.hasOwnProperty(prop)) {

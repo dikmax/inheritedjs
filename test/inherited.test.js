@@ -1,10 +1,8 @@
 TestCase("InheritedTest", {
     setUp: function () {
-        this.TestA = createClass(
+        this.TestA = Object.extend('test.TestA',
             /** @lends TestA */
             {
-                name: 'test.TestA',
-
                 /** @constructs */
                 constructor: function () {
                     this.prop = 0;
@@ -25,6 +23,14 @@ TestCase("InheritedTest", {
         );
     },
 
+    testEmptyCall: function() {
+        try {
+            var TestClass = Object.extend();
+        } catch (e) {
+            fail(e);
+        }
+    },
+
     testClassA: function () {
         var testA = new this.TestA();
         assertSame("Wrong class name", testA.className_, 'test.TestA');
@@ -32,11 +38,9 @@ TestCase("InheritedTest", {
     },
 
     testWrongInheritedInConstructor: function () {
-       var TestClass = createClass(
+       var TestClass = Object.extend('TestClass',
             /** @lends TestClass */
             {
-                name: 'TestClass',
-
                 constructor: function () {
                     this.inherited();
                 }
@@ -52,12 +56,9 @@ TestCase("InheritedTest", {
     },
 
     testInheritedInConstructor: function () {
-        var TestClass = createClass(
+        var TestClass = this.TestA.extend('TestClass',
             /** @lends TestClass */
             {
-                name: 'TestClass',
-                extend: this.TestA,
-
                 constructor: function () {
                     this.a = true;
                     this.inherited();
@@ -77,7 +78,7 @@ TestCase("InheritedTest", {
     },
 
     testEmptyName: function () {
-        var TestClass = createClass({
+        var TestClass = Object.extend({
             constructor: function () {
                 this.prop = true;
             }
@@ -88,17 +89,16 @@ TestCase("InheritedTest", {
     },
 
     testEmptyNameInheritance: function () {
-        var TestClass1 = createClass({
+        var TestClass1 = Object.extend({
             constructor: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = createClass({
+        var TestClass2 = TestClass1.extend({
             constructor: function () {
                 this.inherited();
-            },
-            extend: TestClass1
+            }
         });
 
         var test = new TestClass2();
@@ -106,7 +106,7 @@ TestCase("InheritedTest", {
     },
 
     testNoConstructor: function () {
-        var TestClass = createClass({
+        var TestClass = Object.extend({
             method: function () {
                 this.prop = true;
             }
@@ -118,15 +118,13 @@ TestCase("InheritedTest", {
     },
 
     testNoConstructorInheritance: function () {
-        var TestClass1 = createClass({
+        var TestClass1 = Object.extend({
             method: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = createClass({
-            extend: TestClass1,
-
+        var TestClass2 = TestClass1.extend({
             method: function() {
                 this.inherited();
             }
@@ -138,19 +136,15 @@ TestCase("InheritedTest", {
     },
 
     testOverChildInheritance: function () {
-        var TestClass1 = createClass({
+        var TestClass1 = Object.extend({
             method: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = createClass({
-            extend: TestClass1
-        });
+        var TestClass2 = TestClass1.extend({});
 
-        var TestClass3 = createClass({
-            extend: TestClass2,
-
+        var TestClass3 = TestClass2.extend({
             method: function () {
                 this.prop = false;
                 this.inherited();
@@ -163,19 +157,16 @@ TestCase("InheritedTest", {
     },
 
     testOverConstructorInheritance: function () {
-        var TestClass1 = createClass({
+        var TestClass1 = Object.extend({
             constructor: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = createClass({
-            extend: TestClass1
+        var TestClass2 = TestClass1.extend({
         });
 
-        var TestClass3 = createClass({
-            extend: TestClass2,
-
+        var TestClass3 = TestClass2.extend({
             constructor: function () {
                 this.prop = false;
                 this.inherited();
