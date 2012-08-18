@@ -1,7 +1,30 @@
 /**
+ * @param {{static: boolean}} flags
+ * @param {*} member
+ * @constructor
+ */
+var ClassMember = function (flags, member) {
+    this._static = !!flags['static'];
+    this.member = member;
+};
+
+/**
+ * @type {boolean}
+ */
+ClassMember.prototype._static = false;
+/**
+ * @type {*}
+ */
+ClassMember.prototype.member = null;
+
+Object.prototype['__static__'] = function(item) {
+    return new ClassMember({'static': true}, item);
+};
+
+/**
  * @export
  */
-Object.prototype['extend'] = function () {
+Object.prototype['__extend__'] = function () {
     /**
      * Calls parent method
      *
@@ -147,14 +170,38 @@ Object.prototype['extend'] = function () {
         /** @expose */
         _class.prototype.inherited = inherited;
 
+        var prop;
+
+        // Prepare statics
+        var __staticBase = {};
+        var __static = {};
+        if (baseClass.__staticBase) {
+            for (prop in baseClass.__staticBase) {
+                if (baseClass.__staticBase.hasOwnProperty(prop)) {
+                    __static[prop] = baseClass['__static'][prop];
+                    __staticBase[prop] = __static[prop];
+                }
+            }
+        }
+        _class['__static'] = __static;
+        _class.prototype['__static'] = __static;
+        _class.__staticBase = __staticBase;
+
         delete specification.constructor;
 
-        for (var prop in specification) {
+        for (prop in specification) {
             if (specification.hasOwnProperty(prop)) {
-                _class.prototype[prop] = specification[prop];
+                var property = specification[prop];
+                if (property instanceof ClassMember) {
+                    if (property._static) {
+                        __static[prop] = property.member;
+                        __staticBase[prop] = property.member;
+                    }
+                } else {
+                    _class.prototype[prop] = property;
+                }
             }
         }
         return _class;
     };
-
 }();

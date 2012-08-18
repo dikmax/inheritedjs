@@ -1,6 +1,6 @@
 TestCase("InheritedTest", {
     setUp: function () {
-        this.TestA = Object.extend('test.TestA',
+        this.TestA = Object.__extend__('test.TestA',
             /** @lends TestA */
             {
                 /** @constructs */
@@ -25,7 +25,7 @@ TestCase("InheritedTest", {
 
     testEmptyCall: function() {
         try {
-            var TestClass = Object.extend();
+            var TestClass = Object.__extend__();
         } catch (e) {
             fail(e);
         }
@@ -38,7 +38,7 @@ TestCase("InheritedTest", {
     },
 
     testWrongInheritedInConstructor: function () {
-       var TestClass = Object.extend('TestClass',
+       var TestClass = Object.__extend__('TestClass',
             /** @lends TestClass */
             {
                 constructor: function () {
@@ -56,7 +56,7 @@ TestCase("InheritedTest", {
     },
 
     testInheritedInConstructor: function () {
-        var TestClass = this.TestA.extend('TestClass',
+        var TestClass = this.TestA.__extend__('TestClass',
             /** @lends TestClass */
             {
                 constructor: function () {
@@ -78,7 +78,7 @@ TestCase("InheritedTest", {
     },
 
     testEmptyName: function () {
-        var TestClass = Object.extend({
+        var TestClass = Object.__extend__({
             constructor: function () {
                 this.prop = true;
             }
@@ -89,13 +89,13 @@ TestCase("InheritedTest", {
     },
 
     testEmptyNameInheritance: function () {
-        var TestClass1 = Object.extend({
+        var TestClass1 = Object.__extend__({
             constructor: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = TestClass1.extend({
+        var TestClass2 = TestClass1.__extend__({
             constructor: function () {
                 this.inherited();
             }
@@ -106,7 +106,7 @@ TestCase("InheritedTest", {
     },
 
     testNoConstructor: function () {
-        var TestClass = Object.extend({
+        var TestClass = Object.__extend__({
             method: function () {
                 this.prop = true;
             }
@@ -118,13 +118,13 @@ TestCase("InheritedTest", {
     },
 
     testNoConstructorInheritance: function () {
-        var TestClass1 = Object.extend({
+        var TestClass1 = Object.__extend__({
             method: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = TestClass1.extend({
+        var TestClass2 = TestClass1.__extend__({
             method: function() {
                 this.inherited();
             }
@@ -136,15 +136,15 @@ TestCase("InheritedTest", {
     },
 
     testOverChildInheritance: function () {
-        var TestClass1 = Object.extend({
+        var TestClass1 = Object.__extend__({
             method: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = TestClass1.extend({});
+        var TestClass2 = TestClass1.__extend__({});
 
-        var TestClass3 = TestClass2.extend({
+        var TestClass3 = TestClass2.__extend__({
             method: function () {
                 this.prop = false;
                 this.inherited();
@@ -157,16 +157,16 @@ TestCase("InheritedTest", {
     },
 
     testOverConstructorInheritance: function () {
-        var TestClass1 = Object.extend({
+        var TestClass1 = Object.__extend__({
             constructor: function () {
                 this.prop = true;
             }
         });
 
-        var TestClass2 = TestClass1.extend({
+        var TestClass2 = TestClass1.__extend__({
         });
 
-        var TestClass3 = TestClass2.extend({
+        var TestClass3 = TestClass2.__extend__({
             constructor: function () {
                 this.prop = false;
                 this.inherited();
@@ -175,5 +175,36 @@ TestCase("InheritedTest", {
 
         var test = new TestClass3();
         assertFalse(test.prop);
+    },
+
+    testInheritedReturn: function () {
+        var TestClass = Object.__extend__({
+            method: function () {
+                return true;
+            }
+        });
+
+        var TestClass2 = TestClass.__extend__({
+            method: function () {
+                return this.inherited();
+            }
+        });
+
+        var test = new TestClass2();
+        assertTrue(test.method());
+    },
+
+    testSimpleStatic: function () {
+        var TestClass = Object.__extend__({
+            item: __static__(true)
+        });
+
+        var test = new TestClass();
+        assertTrue(test.__static.item);
+        TestClass.__static.item = false;
+        assertFalse(test.__static.item);
+        var test2 = new TestClass();
+        test2.__static.item = true;
+        assertTrue(test.__static.item);
     }
 });
