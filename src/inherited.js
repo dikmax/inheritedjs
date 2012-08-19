@@ -164,9 +164,7 @@ Object.prototype['__extend__'] = function () {
         /** @expose */
         _class.prototype.className_ = name;
         _class.prototype.constructor = _class;
-        //noinspection JSUnusedGlobalSymbols
-        /** @expose */
-        _class.prototype.constructorFn_ = constructor;
+        _class.prototype['__cnstrFn'] = constructor;
         /** @expose */
         _class.prototype.inherited = inherited;
 
@@ -174,17 +172,16 @@ Object.prototype['__extend__'] = function () {
 
         // Prepare statics
         var __staticBase = {};
-        var __static = {};
         if (baseClass.__staticBase) {
             for (prop in baseClass.__staticBase) {
                 if (baseClass.__staticBase.hasOwnProperty(prop)) {
-                    __static[prop] = baseClass['__static'][prop];
-                    __staticBase[prop] = __static[prop];
+                    __staticBase[prop] = baseClass.__staticBase[prop];
+                    _class[prop] = __staticBase[prop];
                 }
             }
         }
-        _class['__static'] = __static;
-        _class.prototype['__static'] = __static;
+        //_class['__static'] = __static;
+        _class.prototype['__static'] = _class;
         _class.__staticBase = __staticBase;
 
         delete specification.constructor;
@@ -194,7 +191,7 @@ Object.prototype['__extend__'] = function () {
                 var property = specification[prop];
                 if (property instanceof ClassMember) {
                     if (property._static) {
-                        __static[prop] = property.member;
+                        _class[prop] = property.member;
                         __staticBase[prop] = property.member;
                     }
                 } else {
