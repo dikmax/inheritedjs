@@ -192,7 +192,7 @@ TestCase("InheritedTest", {
         assertTrue(test.__static.item);
     },
 
-    testInheritedStatic: function () {
+    testInheritedStaticConstruct: function () {
         var TestClass = Object.__extend__({
             item: __static__(true)
         });
@@ -202,5 +202,37 @@ TestCase("InheritedTest", {
         var test = new TestClass();
         TestClass.item = false;
         assertTrue(TestClass2.item);
+    },
+
+    testInheritedStaticCall: function () {
+        var TestClass = Object.__extend__({
+            method: __static__(function() {
+                return true
+            })
+        });
+        var TestClass2 = TestClass.__extend__({
+            method: __static__(function () {
+                return this.inherited();
+            })
+        });
+        assertTrue(TestClass2.method());
+    },
+
+    testInheritedLateStaticBinding: function () {
+        var TestClass = Object.__extend__({
+            method: __static__(function() {
+                this.item = true;
+            })
+        });
+        var TestClass2 = TestClass.__extend__({
+            method: __static__(function () {
+                this.item = false;
+                return this.inherited();
+            })
+        });
+        TestClass2.method();
+        assertTrue(TestClass2.item);
+        assertUndefined(TestClass.item);
     }
+
 });

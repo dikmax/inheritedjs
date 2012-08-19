@@ -51,6 +51,30 @@ Object.prototype['__extend__'] = function () {
     };
 
     /**
+     * Calls parent static method
+     *
+     * @param {...*} args Arguments passed to parent method
+     * @return {*} Return value of parent method
+     */
+    var inheritedStatic = function (args) {
+        var method;
+        var caller = arguments.callee.caller;
+        for (var i in this) {
+            //noinspection JSUnfilteredForInLoop
+            if (this[i] === caller) {
+                method = i;
+                break;
+            }
+        }
+        if (method) {
+            if (this.superClass_['__static'] && this.superClass_['__static'][method] === undefined) {
+                throw "No inherited method found";
+            }
+            return this.superClass_['__static'][method].apply(this, arguments);
+        }
+    };
+
+    /**
      * @enum {number}
      */
     var Browser = {
@@ -172,6 +196,7 @@ Object.prototype['__extend__'] = function () {
 
         // Prepare statics
         var __staticBase = {};
+        _class.inherited = inheritedStatic;
         if (baseClass.__staticBase) {
             for (prop in baseClass.__staticBase) {
                 if (baseClass.__staticBase.hasOwnProperty(prop)) {
