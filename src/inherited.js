@@ -132,16 +132,15 @@
      * @return Object
      */
     Object.prototype['__extend__'] = function (name, specification) {
+        eval('var args=arguments,cnstr=args[1]&&args[1].constructor||args[0]&&args[0].constructor||function(){}');
         if (typeof name !== 'string') {
             specification = name;
-            arguments[1] = specification;
             name = null;
         }
         specification = specification || {};
         if (specification.constructor === Object || !specification.constructor) {
             specification.constructor = function () {};
         }
-        eval('var cnstr=arguments[1] && arguments[1].constructor || function(){}');
         var constructor = specification.constructor;
         //var _class = constructor;
         /**
@@ -196,7 +195,6 @@
                     return function () {};
                 }
             }
-
         } else {
             nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                 if (body) {
@@ -205,6 +203,7 @@
                 return function () {};
             }
         }
+
         var _class = nameGenerator(name, 'this.__initFn();cnstr.apply(this,arguments)');
 
         var baseClass = this;
