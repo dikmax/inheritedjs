@@ -1,30 +1,50 @@
-/**
- * @param {{static: boolean}} flags
- * @param {*} member
- * @constructor
- */
-var ClassMember = function (flags, member) {
-    this._static = !!flags['static'];
-    this.member = member;
-};
+(function () {
+    /**
+     * @param {*} member
+     * @constructor
+     */
+    var ClassMember = function (member) {
+        this.member = member;
+    };
 
-/**
- * @type {boolean}
- */
-ClassMember.prototype._static = false;
-/**
- * @type {*}
- */
-ClassMember.prototype.member = null;
+    /**
+     * @type {boolean}
+     */
+    ClassMember.prototype.isStatic = false;
+    ClassMember.prototype.isProperty = false;
+    /**
+     * @type {*}
+     */
+    ClassMember.prototype.member = null;
 
-Object.prototype['__static__'] = function(item) {
-    return new ClassMember({'static': true}, item);
-};
+    /**
+     * @param {*} item
+     * @return {ClassMember}
+     */
+    Object.prototype['__static__'] = function(item) {
+        if (!(item instanceof ClassMember)) {
+            item = new ClassMember(item);
+        }
+        item.isStatic = true;
+        return item;
+    };
 
-/**
- * @export
- */
-Object.prototype['__extend__'] = function () {
+    /**
+     * @param {(ClassMember | {
+     *   set:(boolean|function(*):undefined|null|undefined),
+     *   get:(boolean|function():*|null|undefined),
+     *   default:*
+     * })} item
+     * return {ClassMember}
+     */
+    Object.prototype['__property__'] = function(item) {
+        if (!(item instanceof ClassMember)) {
+            item = new ClassMember(item);
+        }
+        item.isProperty = true;
+        return item;
+    };
+
     /**
      * Calls parent method
      *
@@ -74,6 +94,15 @@ Object.prototype['__extend__'] = function () {
         }
     };
 
+    var classInit = function() {
+        this.__propertiesStorage = {};
+        for (var prop in this.__propertiesDefaults) {
+            if (this.__propertiesDefaults.hasOwnProperty(prop)) {
+                this.__propertiesStorage[prop] = this.__propertiesDefaults[prop];
+            }
+        }
+    };
+
     /**
      * @enum {number}
      */
@@ -99,10 +128,10 @@ Object.prototype['__extend__'] = function () {
 
     /**
      * @param {string|Object|null|undefined} name
-     * @param {Object|null|undefined} specification}
+     * @param {Object|null|undefined} specification
      * @return Object
      */
-    return function (name, specification) {
+    Object.prototype['__extend__'] = function (name, specification) {
         if (typeof name !== 'string') {
             specification = name;
             arguments[1] = specification;
@@ -114,7 +143,7 @@ Object.prototype['__extend__'] = function () {
         }
         eval('var cnstr=arguments[1] && arguments[1].constructor || function(){}');
         var constructor = specification.constructor;
-        var _class = constructor;
+        //var _class = constructor;
         /**
          * @param {?string=} name
          * @param {?string=} body
@@ -162,21 +191,21 @@ Object.prototype['__extend__'] = function () {
                 // I know nothing about other browsers
                 nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                     if (body) {
-                        return /** @type {!Function} */ eval('function(){' + body + '}');
+                        return /** @type {!Function} */ eval('(function(){' + body + '})');
                     }
                     return function () {};
                 }
             }
 
-            _class = nameGenerator(name, 'cnstr.apply(this,arguments)')
         } else {
             nameGenerator = /** @type {function (?string=, ?string=): (!Function)} */ function (name, body) {
                 if (body) {
-                    return /** @type {!Function} */ eval('function(){' + body + '}');
+                    return /** @type {!Function} */ eval('(function(){' + body + '})');
                 }
                 return function () {};
             }
         }
+        var _class = nameGenerator(name, 'this.__initFn();cnstr.apply(this,arguments)');
 
         var baseClass = this;
 
@@ -189,6 +218,7 @@ Object.prototype['__extend__'] = function () {
         _class.prototype.className_ = name;
         _class.prototype.constructor = _class;
         _class.prototype['__cnstrFn'] = constructor;
+        _class.prototype['__initFn'] = classInit;
         /** @expose */
         _class.prototype.inherited = inherited;
 
@@ -205,17 +235,56 @@ Object.prototype['__extend__'] = function () {
                 }
             }
         }
-        //_class['__static'] = __static;
         _class.prototype['__static'] = _class;
         _class.__staticBase = __staticBase;
 
         delete specification.constructor;
 
+        _class.prototype.__propertiesDefaults = {};
+
         for (prop in specification) {
             if (specification.hasOwnProperty(prop)) {
                 var property = specification[prop];
                 if (property instanceof ClassMember) {
-                    if (property._static) {
+                    if (property.isProperty) {
+                        var member = property.member;
+                        if (member['default'] !== undefined) {
+                            _class.prototype.__propertiesDefaults[prop] = member['default'];
+                        }
+                        if (member['get'] !== true && typeof member['get'] !== 'function' &&
+                            member['set'] !== true && typeof member['set'] !== 'function') {
+                            continue;
+                        }
+                        var propertyDescription = {};
+                        if (member['get'] == true) {
+                            propertyDescription['get'] = function(prop) {
+                                return function () {
+                                    return this.__propertiesStorage[prop];
+                                }
+                            }(prop);
+                        } else {
+                            propertyDescription['get'] = function (fun) {
+                                return function() {
+                                    return fun.call(this, this.__propertiesStorage);
+                                }
+                            }(member['get']);
+                        }
+                        if (member['set'] == true) {
+                            propertyDescription['set'] = function(prop) {
+                                return function (value) {
+                                    this.__propertiesStorage[prop] = value;
+                                }
+                            }(prop);
+                        } else {
+                            propertyDescription['set'] = function (fun) {
+                                return function (value) {
+                                    return fun.call(this, value, this.__propertiesStorage);
+                                }
+                            }(member['set']);
+                        }
+
+                        Object.defineProperty(_class.prototype, prop, propertyDescription);
+                    } else if (property.isStatic) {
                         _class[prop] = property.member;
                         __staticBase[prop] = property.member;
                     }
@@ -226,4 +295,4 @@ Object.prototype['__extend__'] = function () {
         }
         return _class;
     };
-}();
+}());

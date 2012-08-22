@@ -233,6 +233,81 @@ TestCase("InheritedTest", {
         TestClass2.method();
         assertTrue(TestClass2.item);
         assertUndefined(TestClass.item);
-    }
+    },
 
+    testPropertySimple: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: true,
+                default: true
+            })
+        });
+
+        var test = new TestClass();
+        test.prop = true;
+        assertTrue(test.prop);
+    },
+
+    testPropertyCustomGetter: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: function (storage) {
+                    return storage.prop + 1;
+                }
+            })
+        });
+
+        var test = new TestClass();
+        test.prop = 2;
+        assertSame(3, test.prop);
+    },
+
+    testPropertyCustomSetter: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: function (value, storage) {
+                    storage.prop = value + 1;
+                },
+                get: true
+            })
+        });
+
+        var test = new TestClass();
+        test.prop = 2;
+        assertSame(3, test.prop);
+    },
+
+    testPropertyIndependence: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: true
+            })
+        });
+
+        var test1 = new TestClass();
+        test1.prop = 1;
+        var test2 = new TestClass();
+        test2.prop = 2;
+        assertSame(1, test1.prop);
+        assertSame(2, test2.prop);
+    },
+
+    testPropertyDefaultValue: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: true,
+                default: 1
+            })
+        });
+
+        var test = new TestClass();
+        assertSame(1, test.prop);
+        test.prop = 2;
+        var test2 = new TestClass();
+        assertSame(1, test2.prop);
+    }
 });
