@@ -309,5 +309,42 @@ TestCase("InheritedTest", {
         test.prop = 2;
         var test2 = new TestClass();
         assertSame(1, test2.prop);
+    },
+
+    testPropertyInheritance: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: function (storage) {
+                    return storage.prop + 1;
+                }
+            })
+        });
+
+        var TestClass2 = TestClass.__extend__();
+
+        var test = new TestClass2();
+        test.prop = 2;
+        assertSame(3, test.prop);
+    },
+
+    testPropertyInheritedDefaultValue: function () {
+        var TestClass = Object.__extend__({
+            prop: __property__({
+                set: true,
+                get: true,
+                default: 1
+            })
+        });
+
+        var TestClass2 = TestClass.__extend__();
+
+        var test = new TestClass();
+        assertSame(1, test.prop);
+        test.prop = 2;
+        var test2 = new TestClass2();
+        assertSame(1, test2.prop);
+        assertSame(2, test.prop);
     }
+
 });

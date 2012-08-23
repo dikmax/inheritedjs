@@ -132,6 +132,7 @@
      * @return Object
      */
     Object.prototype['__extend__'] = function (name, specification) {
+        // TODO select shorter name for arguments
         eval('var args=arguments,cnstr=args[1]&&args[1].constructor||args[0]&&args[0].constructor||function(){}');
         if (typeof name !== 'string') {
             specification = name;
@@ -239,7 +240,7 @@
 
         delete specification.constructor;
 
-        _class.prototype.__propertiesDefaults = {};
+        _class.prototype.__propertiesDefaults = baseClass.prototype && baseClass.prototype.__propertiesDefaults || {};
 
         for (prop in specification) {
             if (specification.hasOwnProperty(prop)) {
